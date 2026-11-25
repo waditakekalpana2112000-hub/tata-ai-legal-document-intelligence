@@ -5,8 +5,6 @@ It finds the relevant clauses first and then lets an LLM answer **only from thos
 
 ## 🌐 Live Application
 
-## 🌐 Live Application
-
 [Open Tata AI Legal Document Intelligence](https://tata-ai-legal-document-intelligence-de6gtcpssxpxloffyrpqhb.streamlit.app/)
 
 The application is deployed and can be accessed directly through the link above.
