@@ -1,86 +1,85 @@
-"""ChromaDB vector store: save document chunks and search them by meaning."""
+"""Lightweight in-memory document store and keyword-overlap retriever (low RAM)."""
 from collections import defaultdict
+import re
 from typing import Optional
 
-from config import CHROMA_DIR, COLLECTION_NAME, EMBEDDING_MODEL, MAX_FULL_CHUNKS, TOP_K
+from config import MAX_FULL_CHUNKS, TOP_K
 from utils.chunking import chunk_text
 
-_collection = None
+# _store[doc_name] = {"type": str, "chunks": list[str]}
+_store: dict[str, dict] = {}
 
 
-def get_collection():
-    """Open (or create) the Chroma collection once and reuse it."""
-    global _collection
-    if _collection is None:
-        import chromadb
-        from chromadb.utils import embedding_functions
-
-        CHROMA_DIR.mkdir(parents=True, exist_ok=True)
-        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-        embed_fn = embedding_functions.SentenceTransformerEmbeddingFunction(model_name=EMBEDDING_MODEL)
-        _collection = client.get_or_create_collection(
-            name=COLLECTION_NAME,
-            embedding_function=embed_fn,
-            metadata={"hnsw:space": "cosine"},
-        )
-    return _collection
+def _tokenize(text: str) -> set[str]:
+    return {w for w in re.findall(r"[a-z0-9_]+", text.lower()) if len(w) > 1}
 
 
 def add_document(name: str, text: str, doc_type: str = "upload") -> int:
-    """Chunk + embed a document. Re-adding the same name replaces it."""
+    """Chunk a document in memory. Re-adding the same name replaces it."""
     chunks = chunk_text(text)
     if not chunks:
         return 0
-    col = get_collection()
-    col.delete(where={"source": name})
-    col.add(
-        ids=[f"{name}::{i}" for i in range(len(chunks))],
-        documents=chunks,
-        metadatas=[{"source": name, "type": doc_type, "chunk": i} for i in range(len(chunks))],
-    )
+    _store[name] = {
+        "type": doc_type,
+        "chunks": chunks,
+    }
     return len(chunks)
 
 
 def delete_document(name: str) -> None:
-    get_collection().delete(where={"source": name})
+    _store.pop(name, None)
 
 
 def list_documents() -> list[dict]:
-    data = get_collection().get(include=["metadatas"])
     docs = defaultdict(lambda: {"chunks": 0, "type": ""})
-    for meta in data["metadatas"]:
-        docs[meta["source"]]["chunks"] += 1
-        docs[meta["source"]]["type"] = meta.get("type", "")
+    for name, info in _store.items():
+        docs[name]["chunks"] = len(info["chunks"])
+        docs[name]["type"] = info.get("type", "")
     return [{"name": n, **info} for n, info in sorted(docs.items())]
 
 
 def count() -> int:
-    return get_collection().count()
+    return sum(len(info["chunks"]) for info in _store.values())
 
 
 def search(query: str, source: Optional[str] = None, k: int = TOP_K) -> list[dict]:
-    """Find the k chunks closest in meaning to the query."""
-    col = get_collection()
-    if col.count() == 0:
-        return []
-    res = col.query(
-        query_texts=[query],
-        n_results=min(k, col.count()),
-        where={"source": source} if source else None,
+    """Find the top-k chunks matching query keywords."""
+    q_tokens = _tokenize(query)
+    scored: list[tuple[float, str, str]] = []
+
+    target_items = (
+        [(source, _store[source])] if (source and source in _store) else list(_store.items())
     )
+
+    for doc_name, info in target_items:
+        for chunk in info["chunks"]:
+            c_tokens = _tokenize(chunk)
+            if not c_tokens:
+                continue
+            overlap = len(q_tokens & c_tokens)
+            score = round(overlap / max(len(q_tokens), 1), 3) if q_tokens else 0.0
+            scored.append((score, doc_name, chunk))
+
+    scored.sort(key=lambda item: item[0], reverse=True)
     return [
-        {"text": doc, "source": meta["source"], "score": round(1 - dist, 3)}
-        for doc, meta, dist in zip(res["documents"][0], res["metadatas"][0], res["distances"][0])
+        {"text": chunk, "source": doc_name, "score": score}
+        for score, doc_name, chunk in scored[:k]
     ]
 
 
-def get_document_chunks(source: Optional[str] = None, limit: int = MAX_FULL_CHUNKS,
-                        doc_type: Optional[str] = None) -> list[dict]:
-    """Return a whole document (or all documents / all of one type) in reading order."""
-    where = {"source": source} if source else ({"type": doc_type} if doc_type else None)
-    data = get_collection().get(where=where, include=["documents", "metadatas"])
-    rows = sorted(
-        zip(data["documents"], data["metadatas"]),
-        key=lambda r: (r[1]["source"], r[1].get("chunk", 0)),
-    )
-    return [{"text": d, "source": m["source"], "score": None} for d, m in rows[:limit]]
+def get_document_chunks(
+    source: Optional[str] = None,
+    limit: int = MAX_FULL_CHUNKS,
+    doc_type: Optional[str] = None,
+) -> list[dict]:
+    """Return document chunks in reading order."""
+    rows: list[tuple[str, str]] = []
+    for doc_name, info in sorted(_store.items()):
+        if source and doc_name != source:
+            continue
+        if doc_type and info.get("type") != doc_type:
+            continue
+        for chunk in info["chunks"]:
+            rows.append((doc_name, chunk))
+
+    return [{"text": chunk, "source": doc_name, "score": None} for doc_name, chunk in rows[:limit]]
