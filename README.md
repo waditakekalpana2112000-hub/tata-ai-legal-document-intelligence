@@ -3,6 +3,17 @@
 A RAG (Retrieval-Augmented Generation) system for Tata Group legal policies and uploaded contracts.
 It finds the relevant clauses first and then lets an LLM answer **only from those clauses, citing its sources**.
 
+## 🌐 Live Application
+
+[Open Tata AI Legal Document Intelligence](https://YOUR-APP-NAME.streamlit.app)
+
+The application is deployed and can be accessed directly through the link above.
+
+## 📂 Source Code
+
+[GitHub Repository](https://github.com/waditakekalpana2112000-hub/tata-ai-legal-document-intelligence)
+The complete source code, project structure, documentation, and configuration are available in this GitHub repository.
+
 ## Features
 | Tab | Feature | What it does |
 |---|---|---|
