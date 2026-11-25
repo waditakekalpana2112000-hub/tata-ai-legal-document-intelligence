@@ -1,0 +1,22 @@
+﻿[
+  {
+    "question": "How many days written notice is required before an audit?",
+    "source": "audit_rights.md",
+    "expect_any": [["15", "fifteen"], ["notice"]]
+  },
+  {
+    "question": "How long do confidentiality obligations last after the agreement ends?",
+    "source": "confidentiality.md",
+    "expect_any": [["5", "five"], ["year"]]
+  },
+  {
+    "question": "Which law governs the agreement and where are disputes heard?",
+    "source": "governing_law.md",
+    "expect_any": [["indian"], ["mumbai", "maharashtra"]]
+  },
+  {
+    "question": "Does the agreement renew automatically or require advance written notice?",
+    "source": "renewal.md",
+    "expect_any": [["30", "thirty"], ["written"]]
+  }
+]
