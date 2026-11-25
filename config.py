@@ -50,4 +50,4 @@ SMTP_PASSWORD = _env("SMTP_PASSWORD")
 SMTP_FROM = _env("SMTP_FROM") or SMTP_USER
 
 # Frontend -> backend
-BACKEND_URL = _env("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = _env("BACKEND_URL", "https://tata-legal-backend.onrender.com")
