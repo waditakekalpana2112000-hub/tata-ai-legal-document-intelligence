@@ -18,7 +18,7 @@ The complete source code, project structure, knowledge base, evaluation suite, a
 
 ## 🎥 Video Explanation
 
-[Watch the Project Walkthrough Video]([Add your video walkthrough link here])
+[Watch the Project Walkthrough Video](https://drive.google.com/file/d/1xt9c_FyVlFzWQDtv4uO0nhONaCxABU-N/view?usp=sharing)
 
 Watch the video for a complete walkthrough of the business problem, system architecture, AI workflow, live application features, and repository structure.
 
