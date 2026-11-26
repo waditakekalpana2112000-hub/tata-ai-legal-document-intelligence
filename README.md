@@ -288,7 +288,17 @@ The evaluation module (`evaluation/evaluate.py`) benchmarks the system across **
 
 ## 🖼️ Screenshots
 
-*(Add screenshots of the live application here once uploaded to your repository—such as Chat & Highlighted Sources, Policy Check / Contract Comparison, Risk Dashboard, and Deadline Tracker.)*
+### 💬 Chat & Document Audits
+<img width="1895" height="879" alt="Screenshot 2026-11-26 093953" src="https://github.com/user-attachments/assets/13cc7f16-a33f-4c28-9979-99d17ffab70b" />
+
+
+### 🛡️ Contract Comparison & Analysis
+<img width="1900" height="904" alt="Screenshot 2026-11-26 094129" src="https://github.com/user-attachments/assets/9e00109e-d9bf-4db8-93a8-69278daf3526" />
+
+
+### 📊 Contract Risk Dashboard
+<img width="1894" height="844" alt="image" src="https://github.com/user-attachments/assets/aa76d024-5324-40ae-9a0d-ea47c0fe2766" />
+
 
 ---
 
